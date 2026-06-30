@@ -9,7 +9,7 @@ const CardContainer = styled.div`
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: auto;
   min-height: 320px;
   transition: all 0.25s ease-in-out;
   position: relative;
