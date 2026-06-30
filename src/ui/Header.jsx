@@ -224,6 +224,33 @@ const LogoutBtn = styled.button`
   }
 `;
 
+const LoginLinkButton = styled.button`
+  font-family: "Fredoka", "Poppins", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 8px 18px !important;
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-radius: 9999px !important;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transform: none !important;
+
+  &:hover {
+    background-color: var(--primary-hover) !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: var(--shadow-md) !important;
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98) !important;
+  }
+`;
+
 export default function Header() {
   const { mutate: logout, isLoading } = useLogout();
   const { data: user } = useUser();
@@ -245,7 +272,7 @@ export default function Header() {
         setIsOpen(false);
       }
     }
-    
+
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
@@ -266,38 +293,44 @@ export default function Header() {
       </Brand>
 
       <Actions>
-        <DropdownContainer ref={dropdownRef}>
-          <UserIconButton 
-            onClick={toggleDropdown} 
-            title="โปรไฟล์ผู้ใช้"
-            aria-label="โปรไฟล์ผู้ใช้"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </UserIconButton>
+        {user ? (
+          <DropdownContainer ref={dropdownRef}>
+            <UserIconButton
+              onClick={toggleDropdown}
+              title="โปรไฟล์ผู้ใช้"
+              aria-label="โปรไฟล์ผู้ใช้"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </UserIconButton>
 
-          {isOpen && (
-            <DropdownMenu>
-              <DropdownHeader>
-                <DropdownTitle>บัญชีผู้ใช้</DropdownTitle>
-                <UserEmail>{user?.email || 'กำลังโหลด...'}</UserEmail>
-              </DropdownHeader>
-              <LogoutBtn 
-                onClick={handleLogout} 
-                disabled={isLoading}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <polyline points="16 17 21 12 16 7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-                {isLoading ? 'กำลังออกจากระบบ...' : 'ออกจากระบบ'}
-              </LogoutBtn>
-            </DropdownMenu>
-          )}
-        </DropdownContainer>
+            {isOpen && (
+              <DropdownMenu>
+                <DropdownHeader>
+                  <DropdownTitle>บัญชีผู้ใช้</DropdownTitle>
+                  <UserEmail>{user?.email || 'กำลังโหลด...'}</UserEmail>
+                </DropdownHeader>
+                <LogoutBtn
+                  onClick={handleLogout}
+                  disabled={isLoading}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  {isLoading ? 'กำลังออกจากระบบ...' : 'ออกจากระบบ'}
+                </LogoutBtn>
+              </DropdownMenu>
+            )}
+          </DropdownContainer>
+        ) : (
+          <LoginLinkButton onClick={() => navigate('/login')}>
+            เข้าสู่ระบบ
+          </LoginLinkButton>
+        )}
       </Actions>
     </HeaderStyled>
   );

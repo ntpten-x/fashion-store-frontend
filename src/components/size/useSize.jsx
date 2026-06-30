@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { SelectSizes } from "../../services/apiSize"
 import { createContext, useContext } from "react"
 import PropTypes from "prop-types"

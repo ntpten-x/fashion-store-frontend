@@ -32,12 +32,12 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="login" element={<Login />} />
-            <Route path="/" element={<ProtectedRoute><LayoutApp /></ProtectedRoute>}>
+            <Route path="/" element={<LayoutApp />}>
               <Route path='/' index element={<ProductsProvider><Home /></ProductsProvider>} />
-              <Route path="category" element={<CategoryProvider><Category /></CategoryProvider>} />
-              <Route path="colors" element={<ColorsProvider><Colors /></ColorsProvider>} />
-              <Route path="size" element={<SizeProvider><Size /></SizeProvider>} />
-              <Route path="products" element={<ProductsProvider><Products /></ProductsProvider>} />
+              <Route path="category" element={<ProtectedRoute><CategoryProvider><Category /></CategoryProvider></ProtectedRoute>} />
+              <Route path="colors" element={<ProtectedRoute><ColorsProvider><Colors /></ColorsProvider></ProtectedRoute>} />
+              <Route path="size" element={<ProtectedRoute><SizeProvider><Size /></SizeProvider></ProtectedRoute>} />
+              <Route path="products" element={<ProtectedRoute><ProductsProvider><Products /></ProductsProvider></ProtectedRoute>} />
 
 
               <Route path="*" element={<NotFound />} />
