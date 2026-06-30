@@ -21,7 +21,8 @@ export function useLogout() {
     return useMutation({
         mutationFn: logoutApi,
         onSuccess: () => {
-            queryClient.removeQueries(); // เคลียร์ cache ทั้งหมดของ React Query
+            queryClient.setQueryData(['user'], null);
+            queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== 'user' });
         }
     });
 }
