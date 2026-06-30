@@ -261,7 +261,7 @@ export default function Header() {
   const handleLogout = () => {
     logout(null, {
       onSuccess: () => {
-        navigate('/login');
+        navigate('/');
       }
     });
   };
