@@ -1,9 +1,10 @@
-import { useSize } from "./useSize"
 import styled, { keyframes } from "styled-components"
 import PropTypes from "prop-types"
-import { DeleteSizes } from "../../services/apiSize"
+import { DeleteSizes, SelectSizes } from "../../services/apiSize"
 import { useToast } from "../../ui/Toast.jsx"
 import { useState } from "react"
+import { usePaginaions } from "../paginations/usePaginaions"
+import Paginaiontion from "../paginations/Paginaiontion"
 
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -225,7 +226,20 @@ const NoCategoryBadge = styled.span`
 `;
 
 export default function SizeTable({ onSize }) {
-  const { sizes, isLoading, error } = useSize()
+  const [page, setPage] = useState(1);
+  const limit = 8;
+  const { isLoading, data, error } = SelectSizes({ page, limit });
+  const total = data?.total || 0;
+
+  const { totalPages, getPageNumbers } = usePaginaions({ 
+    page,
+    setPage,
+    total, 
+    limit, 
+    sectionId: "size-table-section" 
+  });
+
+  const sizes = data?.data || [];
   const { mutate: deleteSize, isLoading: isDeleting } = DeleteSizes()
   const toast = useToast()
   const [deletingSize, setDeletingSize] = useState(null)
@@ -275,7 +289,7 @@ export default function SizeTable({ onSize }) {
 
   return (
     <>
-      <TableContainer>
+      <TableContainer id="size-table-section">
         <StyledTable>
           <thead>
             <tr>
@@ -315,6 +329,15 @@ export default function SizeTable({ onSize }) {
           </tbody>
         </StyledTable>
       </TableContainer>
+
+      <div style={{ marginTop: '10px' }}>
+        <Paginaiontion 
+          page={page} 
+          totalPages={totalPages} 
+          getPageNumbers={getPageNumbers} 
+          onPageChange={setPage} 
+        />
+      </div>
 
       {/* Custom Delete Confirmation Modal */}
       {deletingSize && (

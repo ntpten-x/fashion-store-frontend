@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "react-query"
 import { apiClient } from "./apiClient"
 
-export function SelectCategory() {
+export function SelectCategory(query) {
+    const queryString = query ? '?' + new URLSearchParams(query).toString() : '';
     return useQuery({
-        queryKey: ['category'],
-        queryFn: () => apiClient('/category/findAll'),
+        queryKey: ['category', query],
+        queryFn: () => apiClient(`/category/findAll${queryString}`),
     })
 }
 

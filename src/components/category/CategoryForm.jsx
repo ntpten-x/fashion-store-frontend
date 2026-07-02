@@ -111,7 +111,7 @@ export default function CategoryForm({ isOpenForm, setIsOpenForm, category, onCl
 
   useEffect(() => {
     if (isOpenForm) {
-      reset(category)
+      reset(category || { category_name: '' })
     } else {
       reset({ category_name: '' })
     }

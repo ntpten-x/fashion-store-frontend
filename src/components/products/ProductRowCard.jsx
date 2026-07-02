@@ -1,10 +1,9 @@
 import styled from "styled-components";
 import { useState, useEffect } from "react";
 import RowCard from "../../ui/RowCard";
-import { useProducts } from "./useProducts";
-
-// Mock products in case API returns empty or fails
-// Using API-only products. Fallback mocks removed.
+import { SelectProduct } from "../../services/apiProduct";
+import { usePaginaions } from "../paginations/usePaginaions";
+import Paginaiontion from "../paginations/Paginaiontion";
 
 const Container = styled.div`
   width: 100%;
@@ -294,7 +293,19 @@ const NoDataContainer = styled.div`
 `;
 
 export default function ProductRowCard() {
-  const { isLoading, products } = useProducts();
+  const limit = 12;
+  const [page, setPage] = useState(1);
+  const { isLoading, data } = SelectProduct({ page, limit, is_use: true });
+  const total = data?.total || 0;
+
+  const { totalPages, getPageNumbers } = usePaginaions({ 
+    page,
+    setPage,
+    total, 
+    limit, 
+    sectionId: "products-section" 
+  });
+  
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   // Close modal when pressing Escape key
@@ -321,11 +332,11 @@ export default function ProductRowCard() {
     );
   }
 
-  const displayProducts = (products || []).filter(p => p.is_use !== false);
+  const displayProducts = data?.data || [];
 
   if (displayProducts.length === 0) {
     return (
-      <Container>
+      <Container id="products-section">
         <SectionHeader>
           <h2>สินค้า 🛍️</h2>
         </SectionHeader>
@@ -357,7 +368,7 @@ export default function ProductRowCard() {
   };
 
   return (
-    <Container>
+    <Container id="products-section">
       <SectionHeader>
         <h2>สินค้า 🛍️</h2>
       </SectionHeader>
@@ -371,6 +382,13 @@ export default function ProductRowCard() {
           />
         ))}
       </ProductGrid>
+
+      <Paginaiontion 
+        page={page} 
+        totalPages={totalPages} 
+        getPageNumbers={getPageNumbers} 
+        onPageChange={setPage} 
+      />
 
       {/* Product Detail Modal */}
       {selectedProduct && (

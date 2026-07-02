@@ -180,9 +180,9 @@ export default function ColorsForm({ isOpenForm, setIsOpenForm, color, onClose }
   useEffect(() => {
     if (isOpenForm) {
       reset({
-        colors_name: color.colors_name || '',
-        colors_code: color.colors_code || '#ff6b8b',
-        categoryIds: color.use?.map(cat => cat.id) || []
+        colors_name: color?.colors_name || '',
+        colors_code: color?.colors_code || '#ff6b8b',
+        categoryIds: color?.use?.map(cat => cat.id) || []
       })
     } else {
       reset({ colors_name: '', colors_code: '#ff6b8b', categoryIds: [] })
@@ -236,7 +236,6 @@ export default function ColorsForm({ isOpenForm, setIsOpenForm, color, onClose }
         <Input
           type="text"
           id="colors_name"
-          placeholder="เช่น พาสเทลชมพู, โอลด์โรส ฯลฯ"
           {...register("colors_name", { required: "กรุณากรอกชื่อสี" })}
         />
         {errors.colors_name && <ErrorMsg>{errors.colors_name.message}</ErrorMsg>}
@@ -286,7 +285,7 @@ export default function ColorsForm({ isOpenForm, setIsOpenForm, color, onClose }
         <SubmitButton type="submit" disabled={isSessionColor ? isUpdating : isCreating}>
           {isSessionColor
             ? (isUpdating ? 'กำลังบันทึก...' : '💾 บันทึกการแก้ไข')
-            : (isCreating ? 'กำลังบันทึก...' : '✨ เพิ่มสีสินค้า')
+            : (isCreating ? 'กำลังบันทึก...' : '➕ เพิ่มสีสินค้า')
           }
         </SubmitButton>
         <CancelButton type="button" onClick={onClose}>

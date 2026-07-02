@@ -1,9 +1,10 @@
-import { useCategory } from "./useCategory"
 import styled, { keyframes } from "styled-components"
 import PropTypes from "prop-types"
-import { DeleteCategory } from "../../services/apiCategory"
+import { DeleteCategory, SelectCategory } from "../../services/apiCategory"
 import { useToast } from "../../ui/Toast.jsx"
 import { useState } from "react"
+import { usePaginaions } from "../paginations/usePaginaions"
+import Paginaiontion from "../paginations/Paginaiontion"
 
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -196,7 +197,20 @@ const ActionDeleteButton = styled.button`
 `;
 
 export default function CategoryTable({ onCategory }) {
-  const { category: categories, isLoading, error } = useCategory()
+  const [page, setPage] = useState(1);
+  const limit = 8;
+  const { isLoading, data, error } = SelectCategory({ page, limit });
+  const total = data?.total || 0;
+
+  const { totalPages, getPageNumbers } = usePaginaions({ 
+    page,
+    setPage,
+    total, 
+    limit, 
+    sectionId: "category-table-section" 
+  });
+
+  const categories = data?.data || [];
   const { mutate: deleteCategory, isLoading: isDeleting } = DeleteCategory()
   const toast = useToast()
   const [deletingCategory, setDeletingCategory] = useState(null)
@@ -246,7 +260,7 @@ export default function CategoryTable({ onCategory }) {
 
   return (
     <>
-      <TableContainer>
+      <TableContainer id="category-table-section">
         <StyledTable>
           <thead>
             <tr>
@@ -274,6 +288,15 @@ export default function CategoryTable({ onCategory }) {
           </tbody>
         </StyledTable>
       </TableContainer>
+
+      <div style={{ marginTop: '10px' }}>
+        <Paginaiontion 
+          page={page} 
+          totalPages={totalPages} 
+          getPageNumbers={getPageNumbers} 
+          onPageChange={setPage} 
+        />
+      </div>
 
       {/* Custom Delete Confirmation Modal */}
       {deletingCategory && (

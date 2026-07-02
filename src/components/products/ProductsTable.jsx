@@ -1,9 +1,10 @@
-import { useProducts } from "./useProducts"
 import styled, { keyframes } from "styled-components"
 import PropTypes from "prop-types"
-import { DeleteProduct } from "../../services/apiProduct"
+import { DeleteProduct, SelectProduct } from "../../services/apiProduct"
 import { useToast } from "../../ui/Toast.jsx"
 import { useState } from "react"
+import { usePaginaions } from "../paginations/usePaginaions"
+import Paginaiontion from "../paginations/Paginaiontion"
 
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -312,7 +313,20 @@ const SpecBadge = styled.span`
 `;
 
 export default function ProductsTable({ onProduct }) {
-  const { products, isLoading, error } = useProducts()
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  const { isLoading, data, error } = SelectProduct({ page, limit });
+  const total = data?.total || 0;
+
+  const { totalPages, getPageNumbers } = usePaginaions({ 
+    page,
+    setPage,
+    total, 
+    limit, 
+    sectionId: "products-table-section" 
+  });
+
+  const products = data?.data || [];
   const { mutate: deleteProduct, isLoading: isDeleting } = DeleteProduct()
   const toast = useToast()
   const [deletingProduct, setDeletingProduct] = useState(null)
@@ -373,7 +387,7 @@ export default function ProductsTable({ onProduct }) {
 
   return (
     <>
-      <TableContainer>
+      <TableContainer id="products-table-section">
         <StyledTable>
           <thead>
             <tr>
@@ -438,6 +452,15 @@ export default function ProductsTable({ onProduct }) {
           </tbody>
         </StyledTable>
       </TableContainer>
+
+      <div style={{ marginTop: '10px' }}>
+        <Paginaiontion 
+          page={page} 
+          totalPages={totalPages} 
+          getPageNumbers={getPageNumbers} 
+          onPageChange={setPage} 
+        />
+      </div>
 
       {/* Custom Delete Confirmation Modal */}
       {deletingProduct && (

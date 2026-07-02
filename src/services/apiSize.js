@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "react-query"
 import { apiClient } from "./apiClient"
 
-export function SelectSizes() {
+export function SelectSizes(query) {
+    const queryString = query ? '?' + new URLSearchParams(query).toString() : '';
     return useQuery({
-        queryKey: ['size'],
-        queryFn: () => apiClient('/size/findAll'),
+        queryKey: ['size', query],
+        queryFn: () => apiClient(`/size/findAll${queryString}`),
     })
 }
 

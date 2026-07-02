@@ -146,8 +146,8 @@ export default function SizeForm({ isOpenForm, setIsOpenForm, size, onClose }) {
   useEffect(() => {
     if (isOpenForm) {
       reset({
-        size_name: size.size_name || '',
-        categoryIds: size.use?.map(cat => cat.id) || []
+        size_name: size?.size_name || '',
+        categoryIds: size?.use?.map(cat => cat.id) || []
       })
     } else {
       reset({ size_name: '', categoryIds: [] })
@@ -196,7 +196,6 @@ export default function SizeForm({ isOpenForm, setIsOpenForm, size, onClose }) {
         <Input
           type="text"
           id="size_name"
-          placeholder="เช่น S, M, L, XL, 38, 40 ฯลฯ"
           {...register("size_name", { required: "กรุณากรอกขนาดสินค้า" })}
         />
         {errors.size_name && <ErrorMsg>{errors.size_name.message}</ErrorMsg>}
@@ -222,7 +221,7 @@ export default function SizeForm({ isOpenForm, setIsOpenForm, size, onClose }) {
         <SubmitButton type="submit" disabled={isSessionSize ? isUpdating : isCreating}>
           {isSessionSize
             ? (isUpdating ? 'กำลังบันทึก...' : '💾 บันทึกการแก้ไข')
-            : (isCreating ? 'กำลังบันทึก...' : '✨ เพิ่มขนาดสินค้า')
+            : (isCreating ? 'กำลังบันทึก...' : '➕  เพิ่มขนาดสินค้า')
           }
         </SubmitButton>
         <CancelButton type="button" onClick={onClose}>

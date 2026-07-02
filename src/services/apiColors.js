@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "react-query"
 import { apiClient } from "./apiClient"
 
-export function SelectColors() {
+export function SelectColors(query) {
+    const queryString = query ? '?' + new URLSearchParams(query).toString() : '';
     return useQuery({
-        queryKey: ['colors'],
-        queryFn: () => apiClient('/colors/findAll'),
+        queryKey: ['colors', query],
+        queryFn: () => apiClient(`/colors/findAll${queryString}`),
     })
 }
 

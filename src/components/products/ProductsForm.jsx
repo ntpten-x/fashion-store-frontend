@@ -457,7 +457,6 @@ export default function ProductsForm({ isOpenForm, setIsOpenForm, product, onClo
         <Input
           type="text"
           id="name"
-          placeholder="เช่น บิกินี่เซ็ตชมพูหวานแหวว"
           {...register("name", { required: "กรุณากรอกชื่อสินค้า" })}
         />
         {errors.name && <ErrorMsg>{errors.name.message}</ErrorMsg>}
@@ -467,7 +466,6 @@ export default function ProductsForm({ isOpenForm, setIsOpenForm, product, onClo
         <Label htmlFor="description">รายละเอียดสินค้า</Label>
         <TextArea
           id="description"
-          placeholder="รายละเอียดต่าง ๆ ของสินค้า"
           {...register("description", { required: "กรุณากรอกรายละเอียดสินค้า" })}
         />
         {errors.description && <ErrorMsg>{errors.description.message}</ErrorMsg>}
@@ -484,6 +482,26 @@ export default function ProductsForm({ isOpenForm, setIsOpenForm, product, onClo
               required: "กรุณากรอกราคาสินค้า",
               min: { value: 0, message: "ราคาต้องมากกว่าหรือเท่ากับ 0 บาท" }
             })}
+            onKeyDown={(e) => {
+              // Allow: Backspace, Delete, Tab, Escape, Enter, Decimal point
+              if (
+                ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', '.'].includes(e.key) ||
+                // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                (['a', 'c', 'v', 'x'].includes(e.key.toLowerCase()) && (e.ctrlKey === true || e.metaKey === true)) ||
+                // Allow: Home, End, Arrow keys
+                ['Home', 'End', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)
+              ) {
+                // Limit decimal point to at most one
+                if (e.key === '.' && e.currentTarget.value.includes('.')) {
+                  e.preventDefault();
+                }
+                return;
+              }
+              // Block spaces and any non-numeric keypresses
+              if (e.key === ' ' || isNaN(Number(e.key))) {
+                e.preventDefault();
+              }
+            }}
           />
           {errors.price && <ErrorMsg>{errors.price.message}</ErrorMsg>}
         </InputGroup>
@@ -510,9 +528,10 @@ export default function ProductsForm({ isOpenForm, setIsOpenForm, product, onClo
           <Label htmlFor="color">สีสินค้า</Label>
           <Select
             id="color"
+            disabled={!selectedCategory}
             {...register("color", { required: "กรุณาเลือกสีสินค้า" })}
           >
-            <option value="">-- เลือกสี --</option>
+            <option value="">{selectedCategory ? "-- เลือกสี --" : "-- กรุณาเลือกหมวดหมู่ก่อน --"}</option>
             {filteredColors?.map((col) => (
               <option key={col.id} value={col.colors_name}>
                 {col.colors_name}
@@ -526,9 +545,10 @@ export default function ProductsForm({ isOpenForm, setIsOpenForm, product, onClo
           <Label htmlFor="size">ขนาดสินค้า</Label>
           <Select
             id="size"
+            disabled={!selectedCategory}
             {...register("size", { required: "กรุณาเลือกขนาดสินค้า" })}
           >
-            <option value="">-- เลือกขนาด --</option>
+            <option value="">{selectedCategory ? "-- เลือกขนาด --" : "-- กรุณาเลือกหมวดหมู่ก่อน --"}</option>
             {filteredSizes?.map((sz) => (
               <option key={sz.id} value={sz.size_name}>
                 {sz.size_name}
@@ -607,7 +627,7 @@ export default function ProductsForm({ isOpenForm, setIsOpenForm, product, onClo
         <SubmitButton type="submit" disabled={isSessionProduct ? isUpdating : isCreating}>
           {isSessionProduct
             ? (isUpdating ? 'กำลังบันทึก...' : '💾 บันทึกการแก้ไข')
-            : (isCreating ? 'กำลังบันทึก...' : '✨ เพิ่มสินค้า')
+            : (isCreating ? 'กำลังบันทึก...' : '➕ เพิ่มสินค้า')
           }
         </SubmitButton>
         <CancelButton type="button" onClick={onClose}>
