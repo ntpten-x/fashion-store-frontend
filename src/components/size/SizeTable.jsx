@@ -3,8 +3,8 @@ import PropTypes from "prop-types"
 import { DeleteSizes, SelectSizes } from "../../services/apiSize"
 import { useToast } from "../../ui/Toast.jsx"
 import { useState } from "react"
-import { usePaginaions } from "../paginations/usePaginaions"
-import Paginaiontion from "../paginations/Paginaiontion"
+import { usePagination } from "../paginations/usePagination"
+import Pagination from "../paginations/Pagination"
 
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -23,12 +23,29 @@ const TableContainer = styled.div`
   box-shadow: var(--shadow-sm);
   overflow-x: auto;
   width: 100%;
+  
+  @media (max-width: 768px) {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow-x: visible;
+  }
 `;
 
 const StyledTable = styled.table`
   width: 100%;
   border-collapse: collapse;
   text-align: left;
+  
+  @media (max-width: 768px) {
+    display: block;
+    width: 100%;
+    
+    tbody {
+      display: block;
+      width: 100%;
+    }
+  }
 `;
 
 const Th = styled.th`
@@ -39,6 +56,10 @@ const Th = styled.th`
   font-weight: 600;
   color: var(--text-main);
   border-bottom: 1.5px solid var(--border-color);
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const Td = styled.td`
@@ -52,6 +73,30 @@ const Td = styled.td`
     display: flex;
     gap: 8px;
   }
+  
+  @media (max-width: 768px) {
+    display: block;
+    width: 100% !important;
+    padding: 8px 16px;
+    border: none;
+    box-sizing: border-box;
+    
+    &:first-child {
+      padding-top: 16px;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    
+    &.actions {
+      padding: 12px 16px;
+      background-color: var(--secondary-light);
+      border-top: 1px solid var(--border-color);
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+  }
 `;
 
 const Tr = styled.tr`
@@ -63,6 +108,18 @@ const Tr = styled.tr`
   
   &:last-child ${Td} {
     border-bottom: none;
+  }
+  
+  @media (max-width: 768px) {
+    display: block;
+    width: 100%;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(162, 210, 255, 0.04);
+    box-sizing: border-box;
+    overflow: hidden;
   }
 `;
 
@@ -86,6 +143,16 @@ const EditButton = styled.button`
     background-color: var(--secondary-hover);
     transform: translateY(-1px);
   }
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+  }
 `;
 
 const DeleteButton = styled.button`
@@ -105,6 +172,16 @@ const DeleteButton = styled.button`
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+  }
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
   }
 `;
 
@@ -201,6 +278,27 @@ const SpecBadgeRow = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  align-items: center;
+  
+  .mobile-label {
+    display: none;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    align-self: center;
+  }
+  
+  @media (max-width: 768px) {
+    justify-content: flex-start !important;
+    
+    .cat-badges-wrapper {
+      justify-content: flex-start !important;
+    }
+    
+    .mobile-label {
+      display: inline;
+    }
+  }
 `;
 
 const UseCategoryBadge = styled.span`
@@ -231,7 +329,7 @@ export default function SizeTable({ onSize }) {
   const { isLoading, data, error } = SelectSizes({ page, limit });
   const total = data?.total || 0;
 
-  const { totalPages, getPageNumbers } = usePaginaions({ 
+  const { totalPages, getPageNumbers } = usePagination({ 
     page,
     setPage,
     total, 
@@ -293,24 +391,27 @@ export default function SizeTable({ onSize }) {
         <StyledTable>
           <thead>
             <tr>
-              <Th style={{ width: "40%" }}>ขนาดสินค้า</Th>
-              <Th style={{ width: "40%" }}>หมวดหมู่ที่ใช้งานได้</Th>
-              <Th style={{ width: "20%" }}>การจัดการ</Th>
+              <Th style={{ width: "30%", textAlign: "center" }}>ขนาดสินค้า</Th>
+              <Th style={{ width: "50%", textAlign: "center" }}>หมวดหมู่ที่ใช้งานได้</Th>
+              <Th style={{ width: "20%", textAlign: "center" }}>การจัดการ</Th>
             </tr>
           </thead>
           <tbody>
             {sizes.map((sz) => (
               <Tr key={sz.id}>
-                <Td>{sz.size_name}</Td>
-                <Td>
-                  <SpecBadgeRow>
-                    {sz.use && sz.use.length > 0 ? (
-                      sz.use.map(cat => (
-                        <UseCategoryBadge key={cat.id}>{cat.category_name}</UseCategoryBadge>
-                      ))
-                    ) : (
-                      <NoCategoryBadge>ทุกหมวดหมู่</NoCategoryBadge>
-                    )}
+                <Td style={{ textAlign: "center", fontWeight: "600" }}>{sz.size_name}</Td>
+                <Td style={{ textAlign: "center" }}>
+                  <SpecBadgeRow style={{ justifyContent: "center" }}>
+                    <span className="mobile-label">หมวดหมู่:</span>
+                    <div className="cat-badges-wrapper" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                      {sz.use && sz.use.length > 0 ? (
+                        sz.use.map(cat => (
+                           <UseCategoryBadge key={cat.id}>{cat.category_name}</UseCategoryBadge>
+                        ))
+                      ) : (
+                        <NoCategoryBadge>ทุกหมวดหมู่</NoCategoryBadge>
+                      )}
+                    </div>
                   </SpecBadgeRow>
                 </Td>
                 <Td className="actions">
@@ -331,7 +432,7 @@ export default function SizeTable({ onSize }) {
       </TableContainer>
 
       <div style={{ marginTop: '10px' }}>
-        <Paginaiontion 
+        <Pagination 
           page={page} 
           totalPages={totalPages} 
           getPageNumbers={getPageNumbers} 

@@ -316,8 +316,9 @@ const CloseButton = styled.button`
 `;
 
 const ModalImageWrapper = styled.div`
+  position: relative;
   width: 100%;
-  height: 300px;
+  height: 320px;
   border-radius: 16px;
   overflow: hidden;
   background-color: var(--bg-color);
@@ -326,18 +327,43 @@ const ModalImageWrapper = styled.div`
   justify-content: center;
   align-items: center;
 
+  ${props => props.$image && `
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url(${props.$image});
+      background-size: cover;
+      background-position: center;
+      filter: blur(15px) brightness(0.95);
+      opacity: 0.2;
+      z-index: 1;
+    }
+  `}
+
   img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    position: relative;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
   }
   
   .emoji {
     font-size: 5rem;
+    position: relative;
+    z-index: 2;
   }
 
   @media (max-width: 680px) {
-    height: 200px;
+    height: 260px;
   }
 `;
 
@@ -595,7 +621,7 @@ export default function ProductsCard() {
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <CloseButton onClick={(e) => { e.stopPropagation(); handleCloseModal(); }}>✕</CloseButton>
 
-            <ModalImageWrapper>
+            <ModalImageWrapper $image={selectedProduct.image}>
               {selectedProduct.image ? (
                 <img src={selectedProduct.image} alt={selectedProduct.name} />
               ) : (
@@ -607,11 +633,11 @@ export default function ProductsCard() {
               {selectedProduct.category && <ModalCategory>{selectedProduct.category}</ModalCategory>}
               <ModalTitle>{selectedProduct.name}</ModalTitle>
               <ModalPrice>฿{Number(selectedProduct.price).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</ModalPrice>
-              <ModalDescription>{selectedProduct.description || "ไม่มีรายละเอียดสินค้าเพิ่มเติมสำหรับรายการนี้"}</ModalDescription>
+              <ModalDescription>{selectedProduct.description || ""}</ModalDescription>
 
               {(selectedProduct.color || selectedProduct.size) && (
                 <ModalSpecs>
-                  {selectedProduct.color && <ModalSpecBadge >สี{selectedProduct.color}</ModalSpecBadge>}
+                  {selectedProduct.color && <ModalSpecBadge>สี{selectedProduct.color}</ModalSpecBadge>}
                   {selectedProduct.size && <ModalSpecBadge>ไซส์ {selectedProduct.size}</ModalSpecBadge>}
                 </ModalSpecs>
               )}

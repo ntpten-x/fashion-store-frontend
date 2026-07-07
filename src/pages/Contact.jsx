@@ -1,5 +1,5 @@
-import ColorsTable from "../components/colors/ColorsTable"
-import ColorsForm from "../components/colors/ColorsForm"
+import ContactTable from "../components/contact/ContactTable"
+import ContactForm from "../components/contact/ContactForm"
 import { useState } from "react"
 import styled, { keyframes } from "styled-components"
 
@@ -125,53 +125,53 @@ const CloseIconButton = styled.button`
   }
 `;
 
-export default function Colors() {
-  const [isOpenForm, setIsOpenForm] = useState(false)
-  const [color, setColor] = useState(null)
+export default function Contact() {
+    const [isOpenForm, setIsOpenForm] = useState(false);
+    const [contact, setContact] = useState(null);
 
-  function handleOpenFormAdd() {
-    setIsOpenForm(true)
-  }
+    function handleOpenFormAdd() {
+        setIsOpenForm(true);
+    }
 
-  function handleCloseFormAdd() {
-    setIsOpenForm(false)
-    setColor(null)
-  }
+    function handleCloseFormAdd() {
+        setIsOpenForm(false);
+        setContact(null);
+    }
 
-  function handleEdit(col) {
-    setColor(col)
-    setIsOpenForm(true)
-  }
+    function handleEdit(item) {
+        setContact(item);
+        setIsOpenForm(true);
+    }
 
-  return (
-    <Container>
-      <HeaderSection>
-        <HeaderText>
-          <h1>จัดการสีสินค้า 🎨</h1>
-        </HeaderText>
+    return (
+        <Container>
+            <HeaderSection>
+                <HeaderText>
+                    <h1>จัดการช่องทางการติดต่อ 📞</h1>
+                </HeaderText>
 
-        <ActionButton onClick={handleOpenFormAdd}>
-          <span>เพิ่มสีใหม่</span>
-        </ActionButton>
-      </HeaderSection>
+                <ActionButton onClick={handleOpenFormAdd}>
+                    <span>เพิ่มช่องทางการติดต่อ</span>
+                </ActionButton>
+            </HeaderSection>
 
-      {isOpenForm && (
-        <ModalOverlay onClick={handleCloseFormAdd}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
-            <CloseIconButton onClick={handleCloseFormAdd}>
-              ✕
-            </CloseIconButton>
-            <ColorsForm
-              isOpenForm={isOpenForm}
-              setIsOpenForm={setIsOpenForm}
-              color={color}
-              onClose={handleCloseFormAdd}
-            />
-          </ModalContent>
-        </ModalOverlay>
-      )}
+            {isOpenForm && (
+                <ModalOverlay onClick={handleCloseFormAdd}>
+                    <ModalContent onClick={(e) => e.stopPropagation()}>
+                        <CloseIconButton onClick={handleCloseFormAdd}>
+                            ✕
+                        </CloseIconButton>
+                        <ContactForm
+                            isOpenForm={isOpenForm}
+                            setIsOpenForm={setIsOpenForm}
+                            contact={contact}
+                            onClose={handleCloseFormAdd}
+                        />
+                    </ModalContent>
+                </ModalOverlay>
+            )}
 
-      <ColorsTable onColor={handleEdit} />
-    </Container>
-  )
+            <ContactTable onContact={handleEdit} />
+        </Container>
+    );
 }

@@ -1,10 +1,13 @@
 import styled, { keyframes } from "styled-components"
 import PropTypes from "prop-types"
 import { DeleteProduct, SelectProduct } from "../../services/apiProduct"
+import { SelectCategory } from "../../services/apiCategory"
+import { SelectColors } from "../../services/apiColors"
+import { SelectSizes } from "../../services/apiSize"
 import { useToast } from "../../ui/Toast.jsx"
-import { useState } from "react"
-import { usePaginaions } from "../paginations/usePaginaions"
-import Paginaiontion from "../paginations/Paginaiontion"
+import { useState, useEffect } from "react"
+import { usePagination } from "../paginations/usePagination"
+import Pagination from "../paginations/Pagination"
 
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -23,12 +26,23 @@ const TableContainer = styled.div`
   box-shadow: var(--shadow-sm);
   overflow-x: auto;
   width: 100%;
+  
+  @media (max-width: 768px) {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow-x: visible;
+  }
 `;
 
 const StyledTable = styled.table`
   width: 100%;
   border-collapse: collapse;
   text-align: left;
+  
+  @media (max-width: 768px) {
+    display: block;
+  }
 `;
 
 const Th = styled.th`
@@ -39,6 +53,10 @@ const Th = styled.th`
   font-weight: 600;
   color: var(--text-main);
   border-bottom: 1.5px solid var(--border-color);
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const Td = styled.td`
@@ -51,7 +69,29 @@ const Td = styled.td`
   &.actions {
     display: flex;
     gap: 8px;
-    margin-top: 10px;
+    justify-content: center;
+  }
+  
+  @media (max-width: 768px) {
+    display: block;
+    width: 100% !important;
+    padding: 8px 16px;
+    border: none;
+    box-sizing: border-box;
+    
+    &:first-child {
+      padding-top: 16px;
+    }
+    
+    &.actions {
+      padding: 12px 16px;
+      background-color: var(--secondary-light);
+      border-top: 1px solid var(--border-color);
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
   }
 `;
 
@@ -64,6 +104,17 @@ const Tr = styled.tr`
   
   &:last-child ${Td} {
     border-bottom: none;
+  }
+  
+  @media (max-width: 768px) {
+    display: block;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(162, 210, 255, 0.04);
+    box-sizing: border-box;
+    overflow: hidden;
   }
 `;
 
@@ -87,6 +138,16 @@ const EditButton = styled.button`
     background-color: var(--secondary-hover);
     transform: translateY(-1px);
   }
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+  }
 `;
 
 const DeleteButton = styled.button`
@@ -106,6 +167,16 @@ const DeleteButton = styled.button`
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+  }
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
   }
 `;
 
@@ -294,12 +365,43 @@ const ProductPriceText = styled.span`
   font-family: "Fredoka", sans-serif;
   font-weight: 600;
   color: var(--primary-hover);
+  
+  .mobile-label {
+    display: none;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-right: 4px;
+  }
+  
+  @media (max-width: 768px) {
+    .mobile-label {
+      display: inline;
+    }
+  }
 `;
 
 const SpecBadgeRow = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  justify-content: center;
+  
+  .mobile-label {
+    display: none;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-right: 4px;
+    align-self: center;
+  }
+  
+  @media (max-width: 768px) {
+    justify-content: flex-start;
+    .mobile-label {
+      display: inline;
+    }
+  }
 `;
 
 const SpecBadge = styled.span`
@@ -312,13 +414,99 @@ const SpecBadge = styled.span`
   font-weight: 500;
 `;
 
+const FilterRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+  width: 100%;
+`;
+
+const FilterSelect = styled.select`
+  padding: 8px 32px 8px 16px;
+  border-radius: 99px;
+  border: 1.5px solid var(--border-color);
+  background-color: var(--panel-bg);
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  outline: none;
+  min-width: 140px;
+  
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237d8f9f' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  
+  &:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+    background-color: white;
+  }
+  
+  @media (max-width: 576px) {
+    flex: 1;
+    min-width: calc(50% - 6px);
+  }
+`;
+
+const ClearFilterButton = styled.button`
+  padding: 8px 16px;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: "Fredoka", sans-serif;
+  background-color: transparent;
+  border: 1.5px dashed #ff6b8b;
+  color: #ff6b8b;
+  box-shadow: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #ffe3e9;
+    color: #ff4770;
+    border-color: #ff4770;
+    transform: translateY(-1.5px);
+  }
+  
+  @media (max-width: 576px) {
+    width: 100%;
+    margin-top: 4px;
+  }
+`;
+
 export default function ProductsTable({ onProduct }) {
   const [page, setPage] = useState(1);
   const limit = 10;
-  const { isLoading, data, error } = SelectProduct({ page, limit });
+  
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterColor, setFilterColor] = useState("");
+  const [filterSize, setFilterSize] = useState("");
+
+  const { data: categories } = SelectCategory();
+  const { data: colors } = SelectColors();
+  const { data: sizes } = SelectSizes();
+
+  const { isLoading, data, error } = SelectProduct({ 
+    page, 
+    limit,
+    ...(filterCategory && { category: filterCategory }),
+    ...(filterColor && { color: filterColor }),
+    ...(filterSize && { size: filterSize })
+  });
   const total = data?.total || 0;
 
-  const { totalPages, getPageNumbers } = usePaginaions({ 
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [filterCategory, filterColor, filterSize]);
+
+  const { totalPages, getPageNumbers } = usePagination({ 
     page,
     setPage,
     total, 
@@ -377,7 +565,9 @@ export default function ProductsTable({ onProduct }) {
     )
   }
 
-  if (!products || products.length === 0) {
+  const hasActiveFilters = !!(filterCategory || filterColor || filterSize);
+
+  if (!hasActiveFilters && (!products || products.length === 0)) {
     return (
       <TableContainer>
         <TableMessage>ยังไม่มีข้อมูลสินค้าในระบบ 📦🏷️</TableMessage>
@@ -387,14 +577,68 @@ export default function ProductsTable({ onProduct }) {
 
   return (
     <>
-      <TableContainer id="products-table-section">
+      <FilterRow>
+        <FilterSelect
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+        >
+          <option value="">ทุกหมวดหมู่ 🛍️</option>
+          {categories?.map((cat) => (
+            <option key={cat.id} value={cat.category_name}>
+              {cat.category_name}
+            </option>
+          ))}
+        </FilterSelect>
+
+        <FilterSelect
+          value={filterColor}
+          onChange={(e) => setFilterColor(e.target.value)}
+        >
+          <option value="">ทุกสี 🎨</option>
+          {colors?.map((col) => (
+            <option key={col.id} value={col.colors_name}>
+              {col.colors_name}
+            </option>
+          ))}
+        </FilterSelect>
+
+        <FilterSelect
+          value={filterSize}
+          onChange={(e) => setFilterSize(e.target.value)}
+        >
+          <option value="">ทุกขนาด 📏</option>
+          {sizes?.map((sz) => (
+            <option key={sz.id} value={sz.size_name}>
+              {sz.size_name}
+            </option>
+          ))}
+        </FilterSelect>
+
+        {hasActiveFilters && (
+          <ClearFilterButton onClick={() => {
+            setFilterCategory("");
+            setFilterColor("");
+            setFilterSize("");
+          }}>
+            ล้างตัวกรอง 🧹
+          </ClearFilterButton>
+        )}
+      </FilterRow>
+
+      {products.length === 0 ? (
+        <TableContainer>
+          <TableMessage>🔍 ไม่พบสินค้าที่ตรงกับเงื่อนไขการค้นหาของคุณ</TableMessage>
+        </TableContainer>
+      ) : (
+        <>
+          <TableContainer id="products-table-section">
         <StyledTable>
           <thead>
             <tr>
-              <Th style={{ width: "45%" }}>ข้อมูลสินค้า</Th>
-              <Th style={{ width: "20%" }}>ราคา</Th>
-              <Th style={{ width: "20%" }}>คุณลักษณะ (Specs)</Th>
-              <Th style={{ width: "15%" }}>การจัดการ</Th>
+              <Th style={{ width: "40%", textAlign: "left" }}>ข้อมูลสินค้า</Th>
+              <Th style={{ width: "15%", textAlign: "center" }}>ราคา</Th>
+              <Th style={{ width: "25%", textAlign: "center" }}>คุณลักษณะ (Specs)</Th>
+              <Th style={{ width: "20%", textAlign: "center" }}>การจัดการ</Th>
             </tr>
           </thead>
           <tbody>
@@ -425,15 +669,19 @@ export default function ProductsTable({ onProduct }) {
                     </NameStack>
                   </ProductInfoCell>
                 </Td>
-                <Td>
+                <Td style={{ textAlign: "center" }}>
                   <ProductPriceText>
-                    ฿{Number(product.price).toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                    <span className="mobile-label">ราคา:</span>
+                    <span>฿{Number(product.price).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
                   </ProductPriceText>
                 </Td>
-                <Td>
+                <Td style={{ textAlign: "center" }}>
                   <SpecBadgeRow>
-                    {product.color && <SpecBadge>🎨 {product.color}</SpecBadge>}
-                    {product.size && <SpecBadge>📏 {product.size}</SpecBadge>}
+                    <span className="mobile-label">คุณลักษณะ:</span>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                      {product.color && <SpecBadge>🎨 {product.color}</SpecBadge>}
+                      {product.size && <SpecBadge>📏 {product.size}</SpecBadge>}
+                    </div>
                   </SpecBadgeRow>
                 </Td>
                 <Td className="actions">
@@ -454,13 +702,15 @@ export default function ProductsTable({ onProduct }) {
       </TableContainer>
 
       <div style={{ marginTop: '10px' }}>
-        <Paginaiontion 
+        <Pagination 
           page={page} 
           totalPages={totalPages} 
           getPageNumbers={getPageNumbers} 
           onPageChange={setPage} 
         />
       </div>
+        </>
+      )}
 
       {/* Custom Delete Confirmation Modal */}
       {deletingProduct && (

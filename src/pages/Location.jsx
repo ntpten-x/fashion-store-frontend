@@ -1,5 +1,5 @@
-import ColorsTable from "../components/colors/ColorsTable"
-import ColorsForm from "../components/colors/ColorsForm"
+import LocationTable from "../components/location/LocationTable"
+import LocationForm from "../components/location/LocationForm"
 import { useState } from "react"
 import styled, { keyframes } from "styled-components"
 
@@ -125,33 +125,33 @@ const CloseIconButton = styled.button`
   }
 `;
 
-export default function Colors() {
-  const [isOpenForm, setIsOpenForm] = useState(false)
-  const [color, setColor] = useState(null)
+export default function Location() {
+  const [isOpenForm, setIsOpenForm] = useState(false);
+  const [location, setLocation] = useState(null);
 
   function handleOpenFormAdd() {
-    setIsOpenForm(true)
+    setIsOpenForm(true);
   }
 
   function handleCloseFormAdd() {
-    setIsOpenForm(false)
-    setColor(null)
+    setIsOpenForm(false);
+    setLocation(null);
   }
 
-  function handleEdit(col) {
-    setColor(col)
-    setIsOpenForm(true)
+  function handleEdit(item) {
+    setLocation(item);
+    setIsOpenForm(true);
   }
 
   return (
     <Container>
       <HeaderSection>
         <HeaderText>
-          <h1>จัดการสีสินค้า 🎨</h1>
+          <h1>จัดการที่อยู่ร้านค้า 📍</h1>
         </HeaderText>
 
         <ActionButton onClick={handleOpenFormAdd}>
-          <span>เพิ่มสีใหม่</span>
+          <span>เพิ่มพิกัดสาขา</span>
         </ActionButton>
       </HeaderSection>
 
@@ -161,17 +161,17 @@ export default function Colors() {
             <CloseIconButton onClick={handleCloseFormAdd}>
               ✕
             </CloseIconButton>
-            <ColorsForm
+            <LocationForm
               isOpenForm={isOpenForm}
               setIsOpenForm={setIsOpenForm}
-              color={color}
+              location={location}
               onClose={handleCloseFormAdd}
             />
           </ModalContent>
         </ModalOverlay>
       )}
 
-      <ColorsTable onColor={handleEdit} />
+      <LocationTable onLocation={handleEdit} />
     </Container>
-  )
+  );
 }

@@ -3,8 +3,8 @@ import PropTypes from "prop-types"
 import { DeleteColors, SelectColors } from "../../services/apiColors"
 import { useToast } from "../../ui/Toast.jsx"
 import { useState } from "react"
-import { usePaginaions } from "../paginations/usePaginaions"
-import Paginaiontion from "../paginations/Paginaiontion"
+import { usePagination } from "../paginations/usePagination"
+import Pagination from "../paginations/Pagination"
 
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -23,12 +23,29 @@ const TableContainer = styled.div`
   box-shadow: var(--shadow-sm);
   overflow-x: auto;
   width: 100%;
+  
+  @media (max-width: 768px) {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow-x: visible;
+  }
 `;
 
 const StyledTable = styled.table`
   width: 100%;
   border-collapse: collapse;
   text-align: left;
+  
+  @media (max-width: 768px) {
+    display: block;
+    width: 100%;
+    
+    tbody {
+      display: block;
+      width: 100%;
+    }
+  }
 `;
 
 const Th = styled.th`
@@ -39,6 +56,10 @@ const Th = styled.th`
   font-weight: 600;
   color: var(--text-main);
   border-bottom: 1.5px solid var(--border-color);
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const Td = styled.td`
@@ -51,6 +72,27 @@ const Td = styled.td`
   &.actions {
     display: flex;
     gap: 8px;
+    justify-content: center;
+  }
+  
+  @media (max-width: 768px) {
+    display: block;
+    width: 100% !important;
+    padding: 10px 16px;
+    border: none;
+    box-sizing: border-box;
+    
+    &:first-child {
+      padding-top: 16px;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    
+    &:last-child {
+      padding-bottom: 16px;
+      border-top: 1px dashed var(--border-color);
+      margin-top: 8px;
+    }
   }
 `;
 
@@ -63,6 +105,17 @@ const Tr = styled.tr`
   
   &:last-child ${Td} {
     border-bottom: none;
+  }
+  
+  @media (max-width: 768px) {
+    display: block;
+    width: 100%;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+    box-sizing: border-box;
   }
 `;
 
@@ -202,6 +255,21 @@ const ColorInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
+  justify-content: center;
+  
+  .mobile-label {
+    display: none;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  
+  @media (max-width: 768px) {
+    justify-content: flex-start;
+    .mobile-label {
+      display: inline;
+    }
+  }
 `;
 
 const ColorBadge = styled.div`
@@ -229,6 +297,28 @@ const SpecBadgeRow = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  align-items: center;
+  justify-content: center;
+  
+  .mobile-label {
+    display: none;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    align-self: center;
+  }
+  
+  @media (max-width: 768px) {
+    justify-content: flex-start !important;
+    
+    .cat-badges-wrapper {
+      justify-content: flex-start !important;
+    }
+    
+    .mobile-label {
+      display: inline;
+    }
+  }
 `;
 
 const UseCategoryBadge = styled.span`
@@ -259,7 +349,7 @@ export default function ColorsTable({ onColor }) {
   const { isLoading, data, error } = SelectColors({ page, limit });
   const total = data?.total || 0;
 
-  const { totalPages, getPageNumbers } = usePaginaions({ 
+  const { totalPages, getPageNumbers } = usePagination({ 
     page,
     setPage,
     total, 
@@ -321,31 +411,37 @@ export default function ColorsTable({ onColor }) {
         <StyledTable>
           <thead>
             <tr>
-              <Th style={{ width: "30%" }}>สี</Th>
-              <Th style={{ width: "25%" }}>สีแสดงผล</Th>
-              <Th style={{ width: "25%" }}>หมวดหมู่ที่ใช้งานได้</Th>
-              <Th style={{ width: "20%" }}>การจัดการ</Th>
+              <Th style={{ width: "25%", textAlign: "center" }}>สี</Th>
+              <Th style={{ width: "25%", textAlign: "center" }}>สีแสดงผล</Th>
+              <Th style={{ width: "30%", textAlign: "center" }}>หมวดหมู่ที่ใช้งานได้</Th>
+              <Th style={{ width: "20%", textAlign: "center" }}>การจัดการ</Th>
             </tr>
           </thead>
           <tbody>
             {colors.map((color) => (
               <Tr key={color.id}>
-                <Td>{color.colors_name}</Td>
-                <Td>
+                <Td style={{ textAlign: "center", fontWeight: "600" }}>{color.colors_name}</Td>
+                <Td style={{ textAlign: "center" }}>
                   <ColorInfo>
-                    <ColorBadge color={color.colors_code || '#cccccc'} />
-                    <HexCode>{color.colors_code}</HexCode>
+                    <span className="mobile-label">สีแสดงผล:</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <ColorBadge color={color.colors_code || '#cccccc'} />
+                      <HexCode>{color.colors_code}</HexCode>
+                    </div>
                   </ColorInfo>
                 </Td>
-                <Td>
+                <Td style={{ textAlign: "center" }}>
                   <SpecBadgeRow>
-                    {color.use && color.use.length > 0 ? (
-                      color.use.map(cat => (
-                        <UseCategoryBadge key={cat.id}>{cat.category_name}</UseCategoryBadge>
-                      ))
-                    ) : (
-                      <NoCategoryBadge>ทุกหมวดหมู่</NoCategoryBadge>
-                    )}
+                    <span className="mobile-label">หมวดหมู่:</span>
+                    <div className="cat-badges-wrapper" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                      {color.use && color.use.length > 0 ? (
+                        color.use.map(cat => (
+                          <UseCategoryBadge key={cat.id}>{cat.category_name}</UseCategoryBadge>
+                        ))
+                      ) : (
+                        <NoCategoryBadge>ทุกหมวดหมู่</NoCategoryBadge>
+                      )}
+                    </div>
                   </SpecBadgeRow>
                 </Td>
                 <Td className="actions">
@@ -366,7 +462,7 @@ export default function ColorsTable({ onColor }) {
       </TableContainer>
 
       <div style={{ marginTop: '10px' }}>
-        <Paginaiontion 
+        <Pagination 
           page={page} 
           totalPages={totalPages} 
           getPageNumbers={getPageNumbers} 

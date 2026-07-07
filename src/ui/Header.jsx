@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useLogout, useUser } from '../components/authentications/useAuth';
 import { useNavigate } from 'react-router-dom';
+import ContactModal from '../components/contact/ContactModal';
+import LocationModal from '../components/location/LocationModal';
 
 const HeaderStyled = styled.header`
   grid-area: header;
@@ -77,11 +79,16 @@ const Actions = styled.div`
   display: flex;
   align-items: center;
   gap: 14px;
+
+  @media (max-width: 480px) {
+    gap: 8px;
+  }
 `;
 
 const DropdownContainer = styled.div`
   position: relative;
   display: inline-block;
+  flex-shrink: 0;
 `;
 
 const UserIconButton = styled.button`
@@ -98,6 +105,7 @@ const UserIconButton = styled.button`
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   padding: 0 !important;
   box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
 
   &:hover {
     background-color: var(--primary-color) !important;
@@ -200,6 +208,7 @@ const LogoutBtn = styled.button`
   transition: all 0.2s ease;
   box-shadow: none !important;
   transform: none !important;
+  flex-shrink: 0;
 
   &:hover {
     background-color: #ff5c5c !important;
@@ -239,6 +248,7 @@ const LoginLinkButton = styled.button`
   align-items: center;
   gap: 6px;
   transform: none !important;
+  flex-shrink: 0;
 
   &:hover {
     background-color: var(--primary-hover) !important;
@@ -249,6 +259,125 @@ const LoginLinkButton = styled.button`
   &:active {
     transform: translateY(0) scale(0.98) !important;
   }
+
+  @media (max-width: 480px) {
+    padding: 8px 12px !important;
+    font-size: 0.8rem;
+  }
+`;
+
+const ContactButton = styled.button`
+  font-family: "Fredoka", "Poppins", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 8px 18px !important;
+  background-color: transparent !important;
+  border: 1.5px solid var(--border-color) !important;
+  color: var(--text-main) !important;
+  box-shadow: none !important;
+  border-radius: 9999px !important;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transform: none !important;
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: var(--primary-light) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+    transform: translateY(-2px) scale(1.02) !important;
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98) !important;
+  }
+
+  @media (max-width: 600px) {
+    width: 40px;
+    height: 40px;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    font-size: 1.1rem;
+    gap: 0;
+
+    .btn-text {
+      display: none;
+    }
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(61, 74, 92, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+  animation: fadeIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+`;
+
+const ModalContent = styled.div`
+  background: var(--panel-bg);
+  border-radius: 24px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  padding: 32px;
+  width: 90%;
+  max-width: 480px;
+  position: relative;
+  animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+
+  @keyframes scaleUp {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  
+  @media (max-width: 480px) {
+    padding: 24px;
+  }
+`;
+
+const CloseIconButton = styled.button`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 8px;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    transform: rotate(90deg);
+  }
 `;
 
 export default function Header() {
@@ -256,6 +385,8 @@ export default function Header() {
   const { data: user } = useUser();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [isOpenContact, setIsOpenContact] = useState(false);
+  const [isOpenLocation, setIsOpenLocation] = useState(false);
   const dropdownRef = useRef(null);
 
   const handleLogout = () => {
@@ -293,6 +424,13 @@ export default function Header() {
       </Brand>
 
       <Actions>
+        <ContactButton onClick={() => setIsOpenContact(true)}>
+          📞 <span className="btn-text">ติดต่อเรา</span>
+        </ContactButton>
+        <ContactButton onClick={() => setIsOpenLocation(true)}>
+          📍 <span className="btn-text">ที่อยู่ร้าน</span>
+        </ContactButton>
+
         {user ? (
           <DropdownContainer ref={dropdownRef}>
             <UserIconButton
@@ -332,6 +470,28 @@ export default function Header() {
           </LoginLinkButton>
         )}
       </Actions>
+
+      {isOpenContact && (
+        <ModalOverlay onClick={() => setIsOpenContact(false)}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <CloseIconButton onClick={() => setIsOpenContact(false)}>
+              ✕
+            </CloseIconButton>
+            <ContactModal onClose={() => setIsOpenContact(false)} />
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      {isOpenLocation && (
+        <ModalOverlay onClick={() => setIsOpenLocation(false)}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <CloseIconButton onClick={() => setIsOpenLocation(false)}>
+              ✕
+            </CloseIconButton>
+            <LocationModal onClose={() => setIsOpenLocation(false)} />
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </HeaderStyled>
   );
 }

@@ -1,10 +1,8 @@
 import styled, { keyframes } from "styled-components"
 import PropTypes from "prop-types"
-import { DeleteCategory, SelectCategory } from "../../services/apiCategory"
+import { DeleteContact, SelectContact } from "../../services/apiContact"
 import { useToast } from "../../ui/Toast.jsx"
 import { useState } from "react"
-import { usePagination } from "../paginations/usePagination"
-import Pagination from "../paginations/Pagination"
 
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -185,7 +183,6 @@ const DeleteButton = styled.button`
   }
 `;
 
-// Modal Styled Components
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -274,50 +271,45 @@ const ActionDeleteButton = styled.button`
   }
 `;
 
-export default function CategoryTable({ onCategory }) {
-  const [page, setPage] = useState(1);
-  const limit = 8;
-  const { isLoading, data, error } = SelectCategory({ page, limit });
-  const total = data?.total || 0;
+const PLATFORMS = {
+  facebook: "📘 Facebook",
+  instagram: "📸 Instagram",
+  line: "💬 Line",
+  phone: "📞 เบอร์โทรศัพท์",
+  other: "🔗 ช่องทางอื่นๆ"
+};
 
-  const { totalPages, getPageNumbers } = usePagination({ 
-    page,
-    setPage,
-    total, 
-    limit, 
-    sectionId: "category-table-section" 
-  });
+export default function ContactTable({ onContact }) {
+  const { isLoading, data: contacts, error } = SelectContact();
+  const { mutate: deleteContact, isLoading: isDeleting } = DeleteContact();
+  const toast = useToast();
+  const [deletingContact, setDeletingContact] = useState(null);
 
-  const categories = data?.data || [];
-  const { mutate: deleteCategory, isLoading: isDeleting } = DeleteCategory()
-  const toast = useToast()
-  const [deletingCategory, setDeletingCategory] = useState(null)
-
-  const handleDeleteClick = (cat) => {
-    setDeletingCategory(cat)
-  }
+  const handleDeleteClick = (contact) => {
+    setDeletingContact(contact);
+  };
 
   const executeDelete = () => {
-    if (!deletingCategory) return
+    if (!deletingContact) return;
 
-    deleteCategory(deletingCategory.id, {
+    deleteContact(deletingContact.id, {
       onSuccess: () => {
-        toast.success(`ลบหมวดหมู่ "${deletingCategory.category_name}" เรียบร้อยแล้ว 🗑️🌸`)
-        setDeletingCategory(null)
+        toast.success(`ลบช่องทาง "${PLATFORMS[deletingContact.platform] || deletingContact.platform}" เรียบร้อยแล้ว 🗑️🌸`);
+        setDeletingContact(null);
       },
       onError: (err) => {
-        toast.error(`ลบไม่สำเร็จ: ${err.message}`)
-        setDeletingCategory(null)
+        toast.error(`ลบไม่สำเร็จ: ${err.message}`);
+        setDeletingContact(null);
       }
-    })
-  }
+    });
+  };
 
   if (isLoading) {
     return (
       <TableContainer>
-        <TableMessage>กำลังโหลดข้อมูลหมวดหมู่... 🌸</TableMessage>
+        <TableMessage>กำลังโหลดข้อมูลช่องทางการติดต่อ... 🌸</TableMessage>
       </TableContainer>
-    )
+    );
   }
 
   if (error) {
@@ -325,38 +317,44 @@ export default function CategoryTable({ onCategory }) {
       <TableContainer>
         <TableMessage>เกิดข้อผิดพลาด: {error.message} 🥺</TableMessage>
       </TableContainer>
-    )
+    );
   }
 
-  if (!categories || categories.length === 0) {
+  if (!contacts || contacts.length === 0) {
     return (
       <TableContainer>
-        <TableMessage>ยังไม่มีข้อมูลหมวดหมู่สินค้าในระบบ 🏷️</TableMessage>
+        <TableMessage>ยังไม่มีข้อมูลช่องทางการติดต่อในระบบ 📞🏷️</TableMessage>
       </TableContainer>
-    )
+    );
   }
 
   return (
     <>
-      <TableContainer id="category-table-section">
+      <TableContainer id="contact-table-section">
         <StyledTable>
           <thead>
             <tr>
-              <Th style={{ width: "60%", textAlign: "center" }}>ชื่อหมวดหมู่</Th>
-              <Th style={{ width: "40%", textAlign: "center" }}>การจัดการ</Th>
+              <Th style={{ width: "30%", textAlign: "center" }}>ประเภทช่องทาง</Th>
+              <Th style={{ width: "50%", textAlign: "center" }}>ข้อมูลติดต่อ / ลิงก์</Th>
+              <Th style={{ width: "20%", textAlign: "center" }}>การจัดการ</Th>
             </tr>
           </thead>
           <tbody>
-            {categories.map((category) => (
-              <Tr key={category.id}>
-                <Td style={{ textAlign: "center", fontWeight: "600" }}>{category.category_name}</Td>
+            {contacts.map((contact) => (
+              <Tr key={contact.id}>
+                <Td style={{ textAlign: "center", fontWeight: "600" }}>
+                  {PLATFORMS[contact.platform] || contact.platform}
+                </Td>
+                <Td style={{ textAlign: "center", fontFamily: "Poppins, sans-serif" }}>
+                  {contact.value}
+                </Td>
                 <Td className="actions">
-                  <EditButton onClick={() => onCategory(category)}>
+                  <EditButton onClick={() => onContact(contact)}>
                     ✏️ แก้ไข
                   </EditButton>
                   <DeleteButton
                     disabled={isDeleting}
-                    onClick={() => handleDeleteClick(category)}
+                    onClick={() => handleDeleteClick(contact)}
                   >
                     🗑️ ลบ
                   </DeleteButton>
@@ -367,26 +365,16 @@ export default function CategoryTable({ onCategory }) {
         </StyledTable>
       </TableContainer>
 
-      <div style={{ marginTop: '10px' }}>
-        <Pagination 
-          page={page} 
-          totalPages={totalPages} 
-          getPageNumbers={getPageNumbers} 
-          onPageChange={setPage} 
-        />
-      </div>
-
-      {/* Custom Delete Confirmation Modal */}
-      {deletingCategory && (
-        <ModalOverlay onClick={() => setDeletingCategory(null)}>
+      {/* Delete Confirmation Modal */}
+      {deletingContact && (
+        <ModalOverlay onClick={() => setDeletingContact(null)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
-            <ConfirmTitle>🗑️ ยืนยันการลบหมวดหมู่</ConfirmTitle>
+            <ConfirmTitle>🗑️ ยืนยันการลบช่องทางการติดต่อ</ConfirmTitle>
             <ConfirmBody>
-              คุณต้องการลบหมวดหมู่ <strong>{`"${deletingCategory.category_name}"`}</strong> ใช่หรือไม่?
-
+              คุณต้องการลบช่องทาง <strong>{`"${PLATFORMS[deletingContact.platform] || deletingContact.platform}"`}</strong> ใช่หรือไม่?
             </ConfirmBody>
             <ButtonRow>
-              <CancelButton onClick={() => setDeletingCategory(null)}>
+              <CancelButton onClick={() => setDeletingContact(null)}>
                 ยกเลิก
               </CancelButton>
               <ActionDeleteButton onClick={executeDelete} disabled={isDeleting}>
@@ -397,9 +385,9 @@ export default function CategoryTable({ onCategory }) {
         </ModalOverlay>
       )}
     </>
-  )
+  );
 }
 
-CategoryTable.propTypes = {
-  onCategory: PropTypes.func.isRequired
-}
+ContactTable.propTypes = {
+  onContact: PropTypes.func.isRequired
+};

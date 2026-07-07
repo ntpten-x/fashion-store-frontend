@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export function usePaginaions({ page, total, limit, sectionId = "products-section" }) {
+export function usePagination({ page, total, limit, sectionId = "products-section" }) {
     const totalPages = Math.ceil(total / limit);
 
     useEffect(() => {

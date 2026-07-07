@@ -99,6 +99,96 @@ const Select = styled.select`
     box-shadow: 0 0 0 4px var(--primary-light);
   }
 `;
+const CustomSelectContainer = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const CustomSelectHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-color);
+  background-color: var(--bg-color);
+  cursor: ${props => props.$disabled ? 'not-allowed' : 'pointer'};
+  opacity: ${props => props.$disabled ? 0.6 : 1};
+  font-family: "Poppins", sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: ${props => props.$disabled ? 'var(--border-color)' : 'var(--primary-color)'};
+  }
+
+  &.open {
+    border-color: var(--primary-color);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px var(--primary-light);
+  }
+`;
+
+const ColorPreviewCircle = styled.span`
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: ${props => props.$color || '#cccccc'};
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  display: inline-block;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+`;
+
+const SelectedColorInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const CustomDropdownList = styled.div`
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  background-color: var(--panel-bg);
+  border: 1.5px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 6px;
+  box-sizing: border-box;
+`;
+
+const CustomDropdownItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Poppins", sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+  }
+  
+  &.selected {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    font-weight: 600;
+  }
+`;
+
 
 const ToggleContainer = styled.div`
   display: flex;
@@ -262,6 +352,42 @@ const UploadButtonLabel = styled.label`
   }
 `;
 
+const SizeCheckboxGroup = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 0;
+`;
+
+const SizeCheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1.5px solid ${props => props.checked ? 'var(--primary-color)' : 'var(--border-color)'};
+  background-color: ${props => props.checked ? 'var(--primary-light)' : 'var(--bg-color)'};
+  color: ${props => props.checked ? 'var(--primary-color)' : 'var(--text-main)'};
+  font-family: "Poppins", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  
+  &:hover {
+    border-color: var(--primary-color);
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+  }
+
+  input {
+    display: none;
+  }
+`;
+
 const FormGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -308,6 +434,7 @@ export default function ProductsForm({ isOpenForm, setIsOpenForm, product, onClo
   const toast = useToast()
 
   const [tempImageUrl, setTempImageUrl] = useState(null)
+  const [selectedSizes, setSelectedSizes] = useState([])
   const isSubmittedRef = useRef(false)
 
   const handleFileChange = (e) => {
@@ -334,6 +461,29 @@ export default function ProductsForm({ isOpenForm, setIsOpenForm, product, onClo
   // Watch fields
   const imageUrl = watch("image")
   const selectedCategory = watch("category")
+  const selectedColor = watch("color")
+
+  const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false)
+  const colorDropdownRef = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (colorDropdownRef.current && !colorDropdownRef.current.contains(event.target)) {
+        setIsColorDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
+  const handleColorSelect = (colorName) => {
+    setValue("color", colorName, { shouldValidate: true })
+    setIsColorDropdownOpen(false)
+  }
+
+  const activeColorObject = colors?.find(c => c.colors_name === selectedColor)
 
   // Filter colors and sizes by allowed categories
   const filteredColors = colors?.filter(col => {
@@ -348,12 +498,22 @@ export default function ProductsForm({ isOpenForm, setIsOpenForm, product, onClo
     return sz.use.some(cat => cat.category_name === selectedCategory);
   }) || [];
 
+  // Size toggle handler
+  const handleSizeToggle = (sizeName) => {
+    setSelectedSizes((prev) => {
+      if (prev.includes(sizeName)) {
+        return prev.filter((s) => s !== sizeName);
+      } else {
+        return [...prev, sizeName];
+      }
+    });
+  };
+
   // Reset color/size if they become invalid for the selected category
   useEffect(() => {
     if (!selectedCategory) return;
 
     const currentColor = watch("color");
-    const currentSize = watch("size");
 
     if (currentColor && colors) {
       const isColorValid = colors
@@ -364,15 +524,17 @@ export default function ProductsForm({ isOpenForm, setIsOpenForm, product, onClo
       }
     }
 
-    if (currentSize && sizes) {
-      const isSizeValid = sizes
+    if (selectedSizes.length > 0 && sizes) {
+      const validSizesForCategory = sizes
         .filter(sz => !sz.use || sz.use.length === 0 || sz.use.some(cat => cat.category_name === selectedCategory))
-        .some(s => s.size_name === currentSize);
-      if (!isSizeValid) {
-        setValue("size", "");
+        .map(s => s.size_name);
+      
+      const filteredSelected = selectedSizes.filter(s => validSizesForCategory.includes(s));
+      if (filteredSelected.length !== selectedSizes.length) {
+        setSelectedSizes(filteredSelected);
       }
     }
-  }, [selectedCategory, colors, sizes, setValue, watch]);
+  }, [selectedCategory, colors, sizes, setValue, watch, selectedSizes]);
 
   useEffect(() => {
     if (isOpenForm) {
@@ -381,18 +543,20 @@ export default function ProductsForm({ isOpenForm, setIsOpenForm, product, onClo
         is_use: product && product.is_use !== undefined ? product.is_use : true,
         is_popular: product && product.is_popular !== undefined ? product.is_popular : false
       })
+      const initialSizes = product?.sizes || (product?.size ? product.size.split(',').map(s => s.trim()).filter(Boolean) : []);
+      setSelectedSizes(initialSizes);
     } else {
       reset({
         name: '',
         description: '',
         price: '',
         color: '',
-        size: '',
         category: '',
         image: '',
         is_use: true,
         is_popular: false
       })
+      setSelectedSizes([]);
     }
   }, [isOpenForm, reset, product])
 
@@ -407,12 +571,17 @@ export default function ProductsForm({ isOpenForm, setIsOpenForm, product, onClo
   }, [tempImageUrl, deleteProductImage])
 
   const onSubmit = (data) => {
+    if (selectedSizes.length === 0) {
+      toast.error('กรุณาเลือกขนาดสินค้าอย่างน้อย 1 ขนาด 🥺');
+      return;
+    }
+
     const payload = {
       name: data.name,
       description: data.description,
       price: Number(data.price),
       color: data.color,
-      size: data.size,
+      size: selectedSizes,
       category: data.category,
       image: data.image,
       is_use: data.is_use !== undefined ? data.is_use : true,
@@ -457,16 +626,17 @@ export default function ProductsForm({ isOpenForm, setIsOpenForm, product, onClo
         <Input
           type="text"
           id="name"
+          placeholder="เช่น บิกินี่ผ้าสแปนเด็กซ์"
           {...register("name", { required: "กรุณากรอกชื่อสินค้า" })}
         />
         {errors.name && <ErrorMsg>{errors.name.message}</ErrorMsg>}
       </InputGroup>
 
       <InputGroup>
-        <Label htmlFor="description">รายละเอียดสินค้า</Label>
+        <Label htmlFor="description">รายละเอียดสินค้า (ไม่จำเป็นต้องระบุ)</Label>
         <TextArea
           id="description"
-          {...register("description", { required: "กรุณากรอกรายละเอียดสินค้า" })}
+          {...register("description")}
         />
         {errors.description && <ErrorMsg>{errors.description.message}</ErrorMsg>}
       </InputGroup>
@@ -524,38 +694,82 @@ export default function ProductsForm({ isOpenForm, setIsOpenForm, product, onClo
       </FormGrid>
 
       <FormGrid>
-        <InputGroup>
-          <Label htmlFor="color">สีสินค้า</Label>
-          <Select
-            id="color"
-            disabled={!selectedCategory}
-            {...register("color", { required: "กรุณาเลือกสีสินค้า" })}
-          >
-            <option value="">{selectedCategory ? "-- เลือกสี --" : "-- กรุณาเลือกหมวดหมู่ก่อน --"}</option>
-            {filteredColors?.map((col) => (
-              <option key={col.id} value={col.colors_name}>
-                {col.colors_name}
-              </option>
-            ))}
-          </Select>
+        <InputGroup ref={colorDropdownRef}>
+          <Label>สีสินค้า</Label>
+          <input type="hidden" {...register("color", { required: "กรุณาเลือกสีสินค้า" })} />
+          <CustomSelectContainer>
+            <CustomSelectHeader
+              $disabled={!selectedCategory}
+              className={isColorDropdownOpen ? 'open' : ''}
+              onClick={() => selectedCategory && setIsColorDropdownOpen(!isColorDropdownOpen)}
+            >
+              {!selectedCategory ? (
+                <span>-- กรุณาเลือกหมวดหมู่ก่อน --</span>
+              ) : activeColorObject ? (
+                <SelectedColorInfo>
+                  <ColorPreviewCircle $color={activeColorObject.colors_code} />
+                  <span>{activeColorObject.colors_name}</span>
+                </SelectedColorInfo>
+              ) : (
+                <span>-- เลือกสี --</span>
+              )}
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{isColorDropdownOpen ? '▲' : '▼'}</span>
+            </CustomSelectHeader>
+
+            {isColorDropdownOpen && selectedCategory && (
+              <CustomDropdownList>
+                {filteredColors.length === 0 ? (
+                  <div style={{ padding: '8px 12px', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                    ไม่มีสีสำหรับหมวดหมู่นี้
+                  </div>
+                ) : (
+                  filteredColors.map((col) => {
+                    const isSelected = selectedColor === col.colors_name;
+                    return (
+                      <CustomDropdownItem
+                        key={col.id}
+                        className={isSelected ? 'selected' : ''}
+                        onClick={() => handleColorSelect(col.colors_name)}
+                      >
+                        <ColorPreviewCircle $color={col.colors_code} />
+                        <span>{col.colors_name}</span>
+                      </CustomDropdownItem>
+                    );
+                  })
+                )}
+              </CustomDropdownList>
+            )}
+          </CustomSelectContainer>
           {errors.color && <ErrorMsg>{errors.color.message}</ErrorMsg>}
         </InputGroup>
 
         <InputGroup>
-          <Label htmlFor="size">ขนาดสินค้า</Label>
-          <Select
-            id="size"
-            disabled={!selectedCategory}
-            {...register("size", { required: "กรุณาเลือกขนาดสินค้า" })}
-          >
-            <option value="">{selectedCategory ? "-- เลือกขนาด --" : "-- กรุณาเลือกหมวดหมู่ก่อน --"}</option>
-            {filteredSizes?.map((sz) => (
-              <option key={sz.id} value={sz.size_name}>
-                {sz.size_name}
-              </option>
-            ))}
-          </Select>
-          {errors.size && <ErrorMsg>{errors.size.message}</ErrorMsg>}
+          <Label>ขนาดสินค้า (เลือกได้หลายขนาด)</Label>
+          {!selectedCategory ? (
+            <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', padding: '8px 0' }}>
+              -- กรุณาเลือกหมวดหมู่ก่อน --
+            </div>
+          ) : filteredSizes.length === 0 ? (
+            <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', padding: '8px 0' }}>
+              ไม่มีข้อมูลขนาดสำหรับหมวดหมู่นี้
+            </div>
+          ) : (
+            <SizeCheckboxGroup>
+              {filteredSizes.map((sz) => {
+                const isChecked = selectedSizes.includes(sz.size_name);
+                return (
+                  <SizeCheckboxLabel key={sz.id} checked={isChecked}>
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => handleSizeToggle(sz.size_name)}
+                    />
+                    {sz.size_name}
+                  </SizeCheckboxLabel>
+                );
+              })}
+            </SizeCheckboxGroup>
+          )}
         </InputGroup>
       </FormGrid>
 

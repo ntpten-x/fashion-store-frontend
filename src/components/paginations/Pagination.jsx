@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import { PaginationWrapper, PageButton } from "./PaginationStyled";
 
-export default function Paginaiontion({ page, totalPages, getPageNumbers, onPageChange }) {
+export default function Pagination({ page, totalPages, getPageNumbers, onPageChange }) {
     if (totalPages <= 1) return null;
 
     const pageNumbers = getPageNumbers();
@@ -44,7 +44,7 @@ export default function Paginaiontion({ page, totalPages, getPageNumbers, onPage
     );
 }
 
-Paginaiontion.propTypes = {
+Pagination.propTypes = {
     page: PropTypes.number.isRequired,
     totalPages: PropTypes.number.isRequired,
     getPageNumbers: PropTypes.func.isRequired,

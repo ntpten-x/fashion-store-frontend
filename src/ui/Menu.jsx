@@ -8,9 +8,19 @@ const MenuList = styled.nav`
   
   @media (max-width: 768px) {
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: flex-start;
     align-items: center;
     width: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+    padding: 0 10px;
   }
 `;
 
@@ -26,6 +36,10 @@ const MenuItem = styled(NavLink)`
   color: var(--text-muted);
   transition: all 0.2s ease;
   background-color: transparent;
+  
+  &:focus {
+    outline: none;
+  }
 
   svg {
     stroke: var(--text-muted);
@@ -39,6 +53,7 @@ const MenuItem = styled(NavLink)`
   span {
     color: inherit;
     font-weight: inherit;
+    text-align: center;
   }
 
   &:hover {
@@ -71,13 +86,14 @@ const MenuItem = styled(NavLink)`
   @media (max-width: 768px) {
     flex-direction: column;
     gap: 3px;
-    padding: 6px 8px;
+    padding: 6px 4px;
     font-size: 0.72rem;
     border-radius: 8px;
     justify-content: center;
     align-items: center;
-    flex: 1;
-    max-width: 80px;
+    flex-shrink: 0;
+    width: 75px;
+    scroll-snap-align: start;
     
     svg {
       width: 16px;
@@ -153,6 +169,21 @@ export default function Menu() {
           <line x1="12" y1="22.08" x2="12" y2="12" />
         </svg>
         <span>จัดการสินค้า</span>
+      </MenuItem>
+
+      <MenuItem to="/contact">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+        </svg>
+        <span>การติดต่อ</span>
+      </MenuItem>
+
+      <MenuItem to="/location">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        <span>ที่อยู่</span>
       </MenuItem>
     </MenuList>
   )

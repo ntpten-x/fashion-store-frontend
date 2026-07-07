@@ -1,10 +1,8 @@
 import styled, { keyframes } from "styled-components"
 import PropTypes from "prop-types"
-import { DeleteCategory, SelectCategory } from "../../services/apiCategory"
+import { DeleteLocation, SelectLocation } from "../../services/apiLocation"
 import { useToast } from "../../ui/Toast.jsx"
 import { useState } from "react"
-import { usePagination } from "../paginations/usePagination"
-import Pagination from "../paginations/Pagination"
 
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -185,7 +183,6 @@ const DeleteButton = styled.button`
   }
 `;
 
-// Modal Styled Components
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -274,50 +271,37 @@ const ActionDeleteButton = styled.button`
   }
 `;
 
-export default function CategoryTable({ onCategory }) {
-  const [page, setPage] = useState(1);
-  const limit = 8;
-  const { isLoading, data, error } = SelectCategory({ page, limit });
-  const total = data?.total || 0;
+export default function LocationTable({ onLocation }) {
+  const { isLoading, data: locations, error } = SelectLocation();
+  const { mutate: deleteLocation, isLoading: isDeleting } = DeleteLocation();
+  const toast = useToast();
+  const [deletingLocation, setDeletingLocation] = useState(null);
 
-  const { totalPages, getPageNumbers } = usePagination({ 
-    page,
-    setPage,
-    total, 
-    limit, 
-    sectionId: "category-table-section" 
-  });
-
-  const categories = data?.data || [];
-  const { mutate: deleteCategory, isLoading: isDeleting } = DeleteCategory()
-  const toast = useToast()
-  const [deletingCategory, setDeletingCategory] = useState(null)
-
-  const handleDeleteClick = (cat) => {
-    setDeletingCategory(cat)
-  }
+  const handleDeleteClick = (loc) => {
+    setDeletingLocation(loc);
+  };
 
   const executeDelete = () => {
-    if (!deletingCategory) return
+    if (!deletingLocation) return;
 
-    deleteCategory(deletingCategory.id, {
+    deleteLocation(deletingLocation.id, {
       onSuccess: () => {
-        toast.success(`ลบหมวดหมู่ "${deletingCategory.category_name}" เรียบร้อยแล้ว 🗑️🌸`)
-        setDeletingCategory(null)
+        toast.success(`ลบสาขา "${deletingLocation.name}" เรียบร้อยแล้ว 🗑️🌸`);
+        setDeletingLocation(null);
       },
       onError: (err) => {
-        toast.error(`ลบไม่สำเร็จ: ${err.message}`)
-        setDeletingCategory(null)
+        toast.error(`ลบไม่สำเร็จ: ${err.message}`);
+        setDeletingLocation(null);
       }
-    })
-  }
+    });
+  };
 
   if (isLoading) {
     return (
       <TableContainer>
-        <TableMessage>กำลังโหลดข้อมูลหมวดหมู่... 🌸</TableMessage>
+        <TableMessage>กำลังโหลดข้อมูลพิกัดร้านค้า... 🌸</TableMessage>
       </TableContainer>
-    )
+    );
   }
 
   if (error) {
@@ -325,38 +309,48 @@ export default function CategoryTable({ onCategory }) {
       <TableContainer>
         <TableMessage>เกิดข้อผิดพลาด: {error.message} 🥺</TableMessage>
       </TableContainer>
-    )
+    );
   }
 
-  if (!categories || categories.length === 0) {
+  if (!locations || locations.length === 0) {
     return (
       <TableContainer>
-        <TableMessage>ยังไม่มีข้อมูลหมวดหมู่สินค้าในระบบ 🏷️</TableMessage>
+        <TableMessage>ยังไม่มีข้อมูลพิกัดสาขาร้านค้าในระบบ 📍🏷</TableMessage>
       </TableContainer>
-    )
+    );
   }
 
   return (
     <>
-      <TableContainer id="category-table-section">
+      <TableContainer id="location-table-section">
         <StyledTable>
           <thead>
             <tr>
-              <Th style={{ width: "60%", textAlign: "center" }}>ชื่อหมวดหมู่</Th>
-              <Th style={{ width: "40%", textAlign: "center" }}>การจัดการ</Th>
+              <Th style={{ width: "40%", textAlign: "center" }}>ชื่อสาขา</Th>
+              <Th style={{ width: "20%", textAlign: "center" }}>ละติจูด (Latitude)</Th>
+              <Th style={{ width: "20%", textAlign: "center" }}>ลองจิจูด (Longitude)</Th>
+              <Th style={{ width: "20%", textAlign: "center" }}>การจัดการ</Th>
             </tr>
           </thead>
           <tbody>
-            {categories.map((category) => (
-              <Tr key={category.id}>
-                <Td style={{ textAlign: "center", fontWeight: "600" }}>{category.category_name}</Td>
+            {locations.map((loc) => (
+              <Tr key={loc.id}>
+                <Td style={{ textAlign: "center", fontWeight: "600" }}>
+                  {loc.name}
+                </Td>
+                <Td style={{ textAlign: "center", fontFamily: "Poppins, sans-serif" }}>
+                  {Number(loc.lat).toFixed(6)}
+                </Td>
+                <Td style={{ textAlign: "center", fontFamily: "Poppins, sans-serif" }}>
+                  {Number(loc.lng).toFixed(6)}
+                </Td>
                 <Td className="actions">
-                  <EditButton onClick={() => onCategory(category)}>
+                  <EditButton onClick={() => onLocation(loc)}>
                     ✏️ แก้ไข
                   </EditButton>
                   <DeleteButton
                     disabled={isDeleting}
-                    onClick={() => handleDeleteClick(category)}
+                    onClick={() => handleDeleteClick(loc)}
                   >
                     🗑️ ลบ
                   </DeleteButton>
@@ -367,26 +361,16 @@ export default function CategoryTable({ onCategory }) {
         </StyledTable>
       </TableContainer>
 
-      <div style={{ marginTop: '10px' }}>
-        <Pagination 
-          page={page} 
-          totalPages={totalPages} 
-          getPageNumbers={getPageNumbers} 
-          onPageChange={setPage} 
-        />
-      </div>
-
-      {/* Custom Delete Confirmation Modal */}
-      {deletingCategory && (
-        <ModalOverlay onClick={() => setDeletingCategory(null)}>
+      {/* Delete Confirmation Modal */}
+      {deletingLocation && (
+        <ModalOverlay onClick={() => setDeletingLocation(null)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
-            <ConfirmTitle>🗑️ ยืนยันการลบหมวดหมู่</ConfirmTitle>
+            <ConfirmTitle>🗑️ ยืนยันการลบสาขาพิกัด</ConfirmTitle>
             <ConfirmBody>
-              คุณต้องการลบหมวดหมู่ <strong>{`"${deletingCategory.category_name}"`}</strong> ใช่หรือไม่?
-
+              คุณต้องการลบพิกัดสาขา <strong>{`"${deletingLocation.name}"`}</strong> ใช่หรือไม่?
             </ConfirmBody>
             <ButtonRow>
-              <CancelButton onClick={() => setDeletingCategory(null)}>
+              <CancelButton onClick={() => setDeletingLocation(null)}>
                 ยกเลิก
               </CancelButton>
               <ActionDeleteButton onClick={executeDelete} disabled={isDeleting}>
@@ -397,9 +381,9 @@ export default function CategoryTable({ onCategory }) {
         </ModalOverlay>
       )}
     </>
-  )
+  );
 }
 
-CategoryTable.propTypes = {
-  onCategory: PropTypes.func.isRequired
-}
+LocationTable.propTypes = {
+  onLocation: PropTypes.func.isRequired
+};

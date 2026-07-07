@@ -31,14 +31,14 @@ const SidebarContainer = styled.aside`
     min-height: auto;
     flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     border-radius: 16px 16px 0 0;
     border-top: 1px solid var(--border-color);
     border-left: none;
     border-right: none;
     border-bottom: none;
     box-shadow: 0 -4px 15px rgba(162, 210, 255, 0.12);
-    padding: 0 16px;
+    padding: 0;
     z-index: 1000;
   }
 `;
@@ -51,6 +51,7 @@ const SidebarContent = styled.div`
   @media (max-width: 768px) {
     width: 100%;
     gap: 0;
+    overflow: hidden;
   }
 `;
 

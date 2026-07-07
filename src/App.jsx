@@ -14,6 +14,8 @@ import ColorsProvider from './components/colors/useColors.jsx';
 import Size from './pages/Size.jsx';
 import SizeProvider from './components/size/useSize.jsx';
 import Products from './pages/Products.jsx';
+import Contact from './pages/Contact.jsx';
+import Location from './pages/Location.jsx';
 
 
 const queryClient = new QueryClient({
@@ -38,6 +40,8 @@ function App() {
               <Route path="colors" element={<ProtectedRoute><ColorsProvider><Colors /></ColorsProvider></ProtectedRoute>} />
               <Route path="size" element={<ProtectedRoute><SizeProvider><Size /></SizeProvider></ProtectedRoute>} />
               <Route path="products" element={<ProtectedRoute><ProductsProvider><Products /></ProductsProvider></ProtectedRoute>} />
+              <Route path="contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
+              <Route path="location" element={<ProtectedRoute><Location /></ProtectedRoute>} />
 
 
               <Route path="*" element={<NotFound />} />

@@ -91,6 +91,8 @@ const ModalContent = styled.div`
   max-width: 520px;
   position: relative;
   animation: ${scaleUp} 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-height: 90vh;
+  overflow-y: auto;
   
   @media (max-width: 480px) {
     padding: 24px;
